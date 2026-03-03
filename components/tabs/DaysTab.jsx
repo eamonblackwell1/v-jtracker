@@ -6,6 +6,9 @@ import Editable from "@/components/Editable";
 export default function DaysTab({ data, u }) {
   const [selectedDay, setSelectedDay] = useState("day3");
   const day = data.days.find(d => d.id === selectedDay);
+  const relatedItems = (data.checklist ?? [])
+    .filter(item => item.weddingDay === selectedDay)
+    .sort((a, b) => (a.num ?? Number.POSITIVE_INFINITY) - (b.num ?? Number.POSITIVE_INFINITY));
 
   const updateDayField = (field, value) => u(d => { const f = d.days.find(x => x.id === selectedDay); if (f) f[field] = value; });
   const updateTask = (taskId, field, value) => u(d => { const dy = d.days.find(x => x.id === selectedDay); if (dy) { const t = dy.tasks.find(x => x.id === taskId); if (t) t[field] = value; } });
@@ -106,8 +109,72 @@ export default function DaysTab({ data, u }) {
                 onMouseEnter={e => (e.currentTarget.style.color = "#722F37")} onMouseLeave={e => (e.currentTarget.style.color = "#888")}>+ Add Decision</button>
             </div>
           </div>
+
+          <div style={{ marginTop: 42 }}>
+            <SectionLabel>Related Planning Items</SectionLabel>
+            <AccentLine />
+            {relatedItems.length === 0 && (
+              <p style={{ fontSize: 13, color: "#aaa", fontStyle: "italic" }}>
+                No planning items are currently tagged to this day.
+              </p>
+            )}
+            {relatedItems.map(item => (
+              <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                <span style={{ fontSize: 12, color: "#999", minWidth: 32 }}>{item.num ? `${item.num}.` : ""}</span>
+                <OwnerPill owner={item.owner} />
+                <div style={{ flex: 1, fontSize: 14, color: "#333", lineHeight: 1.5 }}>{item.task}</div>
+                <span style={{
+                  fontFamily: "'Sen',sans-serif",
+                  fontSize: 10,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  color: statusColor(item.status),
+                  flexShrink: 0,
+                }}>
+                  {statusLabel(item.status)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+function statusLabel(status) {
+  if (status === "done") return "Done";
+  if (status === "in-progress") return "In Progress";
+  return "Not Started";
+}
+
+function statusColor(status) {
+  if (status === "done") return "#5a8a5a";
+  if (status === "in-progress") return "#B8977E";
+  return "#aaa";
+}
+
+function OwnerPill({ owner }) {
+  const map = {
+    us: { label: "MIJ", color: "#722F37", background: "rgba(114,47,55,0.08)", border: "none" },
+    them: { label: "V&J", color: "#722F37", background: "transparent", border: "1px solid rgba(114,47,55,0.35)" },
+    shared: { label: "Both", color: "#96734e", background: "rgba(184,151,126,0.12)", border: "none" },
+  };
+  const style = map[owner] || map.shared;
+  return (
+    <span style={{
+      fontFamily: "'Sen',sans-serif",
+      fontSize: 10,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      padding: "2px 8px",
+      color: style.color,
+      background: style.background,
+      border: style.border,
+      whiteSpace: "nowrap",
+      flexShrink: 0,
+    }}>
+      {style.label}
+    </span>
   );
 }
