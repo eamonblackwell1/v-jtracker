@@ -59,6 +59,26 @@ export default function ChecklistTab({ data, u }) {
       notes: Array.isArray(item.notes) ? [...item.notes] : [],
     });
   });
+  const addTask = () => u(d => {
+    const maxNum = (d.checklist || []).reduce((max, item) => Math.max(max, Number(item.num) || 0), 0);
+    d.checklist.push({
+      id: `cl${Date.now()}`,
+      num: maxNum + 1,
+      phase: "12+",
+      category: "CUSTOM",
+      task: "New task...",
+      details: "",
+      timeline: "12+ months",
+      owner: "shared",
+      status: "not-started",
+      notes: [],
+    });
+  });
+  const removeTask = (id) => u(d => {
+    d.checklist = d.checklist.filter(item => item.id !== id);
+    d.inProgress = (d.inProgress || []).filter(item => item.sourceChecklistId !== id);
+    d.completed = (d.completed || []).filter(item => item.sourceChecklistId !== id);
+  });
 
   return (
     <div>
@@ -67,11 +87,17 @@ export default function ChecklistTab({ data, u }) {
       <p style={{ fontSize: 14, color: "#888", lineHeight: 1.7, marginBottom: 8 }}>
         Tasks are sourced from your workbook and organized as editable planning columns.
       </p>
+      <button
+        onClick={addTask}
+        style={{ fontFamily: "'Sen',sans-serif", fontSize: 11, letterSpacing: 1, color: "#888", background: "none", border: "1px solid rgba(0,0,0,0.12)", cursor: "pointer", padding: "8px 10px", textTransform: "uppercase", marginBottom: 14 }}
+      >
+        + Add Task
+      </button>
 
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
-            {["#", "Time", "Task", "Owner", "Status"].map((h, i) => (
+            {["#", "Time", "Task", "Owner", "Status", ""].map((h, i) => (
               <th
                 key={h}
                 style={{
@@ -80,7 +106,7 @@ export default function ChecklistTab({ data, u }) {
                   fontSize: 11,
                   letterSpacing: 2,
                   textTransform: "uppercase",
-                  textAlign: i === 2 ? "left" : "center",
+                  textAlign: i === 2 ? "left" : i === 5 ? "right" : "center",
                   fontWeight: 600,
                 }}
               >
@@ -104,6 +130,7 @@ export default function ChecklistTab({ data, u }) {
                 onToggle={() => setOpenTaskId(isOpen ? null : item.id)}
                 onChange={updateItem}
                 onStatusChange={updateStatus}
+                onDelete={removeTask}
               />
             );
           })}
@@ -113,7 +140,7 @@ export default function ChecklistTab({ data, u }) {
   );
 }
 
-function FragmentRow({ item, owner, status, isOpen, onToggle, onChange, onStatusChange }) {
+function FragmentRow({ item, owner, status, isOpen, onToggle, onChange, onStatusChange, onDelete }) {
   return (
     <>
       <tr style={{ opacity: status === "done" ? 0.55 : 1 }}>
@@ -180,10 +207,19 @@ function FragmentRow({ item, owner, status, isOpen, onToggle, onChange, onStatus
             ))}
           </select>
         </td>
+        <td style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,0,0,0.05)", textAlign: "right" }}>
+          <button
+            onClick={() => onDelete(item.id)}
+            style={{ background: "none", border: "none", color: "#ccc", cursor: "pointer", fontSize: 14 }}
+            title="Delete task"
+          >
+            ×
+          </button>
+        </td>
       </tr>
       {isOpen && (
         <tr>
-          <td colSpan={5} style={{ padding: "10px 0 14px", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+          <td colSpan={6} style={{ padding: "10px 0 14px", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
             <div style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>
               {item.details || "No notes for this task."}
             </div>
