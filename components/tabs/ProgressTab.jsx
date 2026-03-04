@@ -11,7 +11,20 @@ export default function ProgressTab({ data, u }) {
   const completeTask = (id) => u(d => {
     const t = d.inProgress.find(x => x.id === id);
     if (t) {
-      d.completed.unshift({ id: `c${Date.now()}`, task: t.task, date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), notes: t.notes ?? [] });
+      d.completed.unshift({
+        id: `c${Date.now()}`,
+        task: t.task,
+        date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        notes: t.notes ?? [],
+        sourceChecklistId: t.sourceChecklistId || null,
+      });
+
+      // Reverse sync: completing a linked task marks the master plan item done.
+      if (t.sourceChecklistId) {
+        const checklistItem = d.checklist.find(x => x.id === t.sourceChecklistId);
+        if (checklistItem) checklistItem.status = "done";
+      }
+
       d.inProgress = d.inProgress.filter(x => x.id !== id);
     }
   });

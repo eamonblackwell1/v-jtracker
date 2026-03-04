@@ -9,8 +9,10 @@ import ProgressTab from "@/components/tabs/ProgressTab";
 import ChecklistTab from "@/components/tabs/ChecklistTab";
 import BudgetTab from "@/components/tabs/BudgetTab";
 import Editable from "@/components/Editable";
+import defaultData from "@/lib/defaultData";
 
 export default function Dashboard({ initialData, dashboardId }) {
+  const MASTER_PLAN_SEED_VERSION = "workbook-v2";
   const [data, setData] = useState(initialData);
   const [tab, setTab] = useState("overview");
   const [saveStatus, setSaveStatus] = useState("idle");
@@ -31,6 +33,52 @@ export default function Dashboard({ initialData, dashboardId }) {
 
   // Debounced Supabase save
   useDebouncedSave(data, dashboardId, setSaveStatus, onSaveSuccess);
+
+  // Legacy default migration: previous dashboards were seeded at AU$9,200.
+  useEffect(() => {
+    setData(prev => {
+      if (prev.planningFee !== 9200) return prev;
+      return { ...prev, planningFee: 8600 };
+    });
+  }, []);
+
+  // One-time workbook sync plus backfill for timeline/day-by-day defaults.
+  useEffect(() => {
+    const shouldSeed = data?.seedVersion !== MASTER_PLAN_SEED_VERSION;
+    if (!shouldSeed) return;
+
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/master-plan");
+        if (!res.ok) return;
+        const payload = await res.json();
+        const checklist = Array.isArray(payload?.checklist) ? payload.checklist : [];
+        if (checklist.length === 0 || cancelled) return;
+
+        setData(prev => {
+          if (prev?.seedVersion === MASTER_PLAN_SEED_VERSION) return prev;
+          const needsMilestones = !Array.isArray(prev?.milestones) || prev.milestones.length === 0;
+          const needsDays = !Array.isArray(prev?.days) || prev.days.length === 0;
+          return {
+            ...prev,
+            planningFee: prev?.planningFee === 9200 ? 8600 : prev?.planningFee,
+            milestones: needsMilestones ? defaultData.milestones : prev.milestones,
+            days: needsDays ? defaultData.days : prev.days,
+            checklist: checklist.length > 0 ? checklist : prev.checklist,
+            seedVersion: MASTER_PLAN_SEED_VERSION,
+          };
+        });
+      } catch (err) {
+        console.error("Master plan reset failed:", err);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [data?.seedVersion]);
 
   // Auto-clear "Saved ✓" after 3s
   useEffect(() => {
