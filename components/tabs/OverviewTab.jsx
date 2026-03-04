@@ -1,8 +1,29 @@
 "use client";
 import { SectionLabel, AccentLine, PriorityBadge, StatusDot } from "@/components/shared";
+import Editable from "@/components/Editable";
 
-export default function OverviewTab({ data, setTab }) {
+export default function OverviewTab({ data, setTab, u }) {
   const activeDecisions = data.decisions.filter(d => d.status === "active");
+  const updateMilestone = (id, field, value) => u(d => {
+    const milestone = d.milestones.find(x => x.id === id);
+    if (milestone) milestone[field] = value;
+  });
+  const removeMilestone = (id) => u(d => {
+    d.milestones = d.milestones.filter(x => x.id !== id);
+  });
+  const addMilestone = () => u(d => {
+    d.milestones.push({
+      id: `m${Date.now()}`,
+      label: "New Milestone",
+      target: "TBD",
+      status: "upcoming",
+    });
+  });
+  const toggleMilestoneDone = (id) => u(d => {
+    const milestone = d.milestones.find(x => x.id === id);
+    if (!milestone) return;
+    milestone.status = milestone.status === "done" ? "upcoming" : "done";
+  });
 
   return (
     <div>
@@ -12,23 +33,76 @@ export default function OverviewTab({ data, setTab }) {
       <div style={{ display: "flex", gap: 0, marginBottom: 56, overflowX: "auto", paddingBottom: 8 }}>
         {data.milestones.map((m, i) => (
           <div key={m.id} style={{ flex: "1 0 110px", textAlign: "center", position: "relative" }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: "50%", margin: "0 auto 10px",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700,
-              background: m.status === "done" ? "#722F37" : "transparent",
-              color: m.status === "done" ? "#FAF8F5" : m.status === "current" ? "#722F37" : "#ccc",
-              border: m.status === "done" ? "2px solid #722F37" : m.status === "current" ? "2px solid #722F37" : "2px solid #ddd",
-            }}>
-              {m.status === "done" ? "✓" : `0${i + 1}`}
+            <button
+              onClick={() => toggleMilestoneDone(m.id)}
+              title={m.status === "done" ? "Click to mark as not done" : "Click to mark as done"}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                margin: "0 auto 10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                fontWeight: 700,
+                background: m.status === "done" ? "#722F37" : "transparent",
+                color: m.status === "done" ? "#FAF8F5" : "#bbb",
+                border: m.status === "done" ? "2px solid #722F37" : "2px solid #ddd",
+                fontFamily: "'Sen',sans-serif",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              {m.status === "done" ? "✓" : `${i + 1}`.padStart(2, "0")}
+            </button>
+            <Editable
+              value={m.label}
+              onChange={v => updateMilestone(m.id, "label", v)}
+              tag="div"
+              style={{ fontSize: 12, fontWeight: 600, marginBottom: 2, display: "block" }}
+            />
+            <Editable
+              value={m.target}
+              onChange={v => updateMilestone(m.id, "target", v)}
+              tag="div"
+              style={{ fontSize: 11, color: "#888", display: "block" }}
+            />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 6 }}>
+              <button
+                onClick={() => removeMilestone(m.id)}
+                style={{ border: "none", background: "none", color: "#bbb", cursor: "pointer", fontSize: 12 }}
+                title="Remove milestone"
+              >
+                ×
+              </button>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{m.label}</div>
-            <div style={{ fontSize: 11, color: "#888" }}>{m.target}</div>
             {i < data.milestones.length - 1 && (
               <div style={{ position: "absolute", top: 17, left: "calc(50% + 22px)", right: "calc(-50% + 22px)", height: 1, background: m.status === "done" ? "#722F37" : "#ddd" }} />
             )}
           </div>
         ))}
       </div>
+      <button
+        onClick={addMilestone}
+        style={{
+          fontFamily: "'Sen',sans-serif",
+          fontSize: 12,
+          letterSpacing: 2,
+          textTransform: "uppercase",
+          padding: "10px 0",
+          marginTop: -38,
+          marginBottom: 46,
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "#888",
+        }}
+        onMouseEnter={e => (e.currentTarget.style.color = "#722F37")}
+        onMouseLeave={e => (e.currentTarget.style.color = "#888")}
+      >
+        + Add Milestone
+      </button>
 
       {/* Needs Input */}
       {activeDecisions.length > 0 && (

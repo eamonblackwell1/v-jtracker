@@ -8,6 +8,7 @@ import DecisionsTab from "@/components/tabs/DecisionsTab";
 import ProgressTab from "@/components/tabs/ProgressTab";
 import ChecklistTab from "@/components/tabs/ChecklistTab";
 import BudgetTab from "@/components/tabs/BudgetTab";
+import Editable from "@/components/Editable";
 
 export default function Dashboard({ initialData, dashboardId }) {
   const [data, setData] = useState(initialData);
@@ -55,16 +56,39 @@ export default function Dashboard({ initialData, dashboardId }) {
       {/* HEADER */}
       <div style={{ background: "#1a1a1a", color: "#FAF8F5", padding: "48px 0 0" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 40px" }}>
-          <div style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#B8977E", marginBottom: 20 }}>Married in Japan</div>
-          <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "clamp(34px,5vw,52px)", fontWeight: 300, lineHeight: 1.1, margin: "0 0 12px", color: "#FAF8F5" }}>
-            {data.couple.names}
-          </h1>
+          <Editable
+            value={data.dashboardTitle || "Married in Japan"}
+            onChange={v => u(d => { d.dashboardTitle = v; })}
+            tag="div"
+            style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#B8977E", marginBottom: 20, display: "inline-block" }}
+          />
+          <Editable
+            value={data.couple.names}
+            onChange={v => u(d => { d.couple.names = v; })}
+            tag="h1"
+            style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "clamp(34px,5vw,52px)", fontWeight: 300, lineHeight: 1.1, margin: "0 0 12px", color: "#FAF8F5", display: "block" }}
+          />
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 14, color: "rgba(250,248,245,0.55)", marginBottom: 32 }}>
-            <span>{data.couple.location}</span>
+            <Editable
+              value={data.couple.location}
+              onChange={v => u(d => { d.couple.location = v; })}
+              tag="span"
+              style={{ fontSize: 14, color: "rgba(250,248,245,0.55)" }}
+            />
             <span style={{ color: "rgba(250,248,245,0.2)" }}>·</span>
-            <span>{data.couple.date}</span>
+            <Editable
+              value={data.couple.date}
+              onChange={v => u(d => { d.couple.date = v; })}
+              tag="span"
+              style={{ fontSize: 14, color: "rgba(250,248,245,0.55)" }}
+            />
             <span style={{ color: "rgba(250,248,245,0.2)" }}>·</span>
-            <span>{data.couple.guests}</span>
+            <Editable
+              value={data.couple.guests}
+              onChange={v => u(d => { d.couple.guests = v; })}
+              tag="span"
+              style={{ fontSize: 14, color: "rgba(250,248,245,0.55)" }}
+            />
           </div>
           <div style={{ display: "flex", gap: 0, borderBottom: "1px solid rgba(250,248,245,0.1)", overflowX: "auto" }}>
             {tabs.map(t => (
@@ -88,7 +112,7 @@ export default function Dashboard({ initialData, dashboardId }) {
 
       {/* CONTENT */}
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "48px 40px 80px" }}>
-        {tab === "overview"  && <OverviewTab  data={data} setTab={setTab} />}
+        {tab === "overview"  && <OverviewTab  data={data} setTab={setTab} u={u} />}
         {tab === "days"      && <DaysTab      data={data} u={u} />}
         {tab === "decisions" && <DecisionsTab data={data} u={u} />}
         {tab === "progress"  && <ProgressTab  data={data} u={u} />}
@@ -98,7 +122,9 @@ export default function Dashboard({ initialData, dashboardId }) {
 
       {/* FOOTER */}
       <div style={{ background: "#1a1a1a", padding: "36px 0", textAlign: "center" }}>
-        <div style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#B8977E", marginBottom: 6 }}>Married in Japan</div>
+        <div style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#B8977E", marginBottom: 6 }}>
+          {data.dashboardTitle || "Married in Japan"}
+        </div>
         <div style={{ fontSize: 13, color: "rgba(250,248,245,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
           <span>Last updated: {data.couple.updated} · Juri & Eamon</span>
           <SaveIndicator status={saveStatus} />
