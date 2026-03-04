@@ -37,7 +37,30 @@ export default function OverviewTab({ data, setTab, u }) {
   return (
     <div>
       {/* Timeline */}
-      <SectionLabel>Your Timeline</SectionLabel>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <SectionLabel>Your Timeline</SectionLabel>
+        <button
+          onClick={addMilestone}
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            border: "1px solid rgba(114,47,55,0.28)",
+            background: "transparent",
+            color: "#722F37",
+            cursor: "pointer",
+            fontSize: 16,
+            lineHeight: 1,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: -8,
+          }}
+          title="Add milestone"
+        >
+          +
+        </button>
+      </div>
       <AccentLine />
       <div style={{ display: "flex", gap: 0, marginBottom: 56, overflowX: "auto", paddingBottom: 8 }}>
         {data.milestones.map((m, i) => (
@@ -110,26 +133,7 @@ export default function OverviewTab({ data, setTab, u }) {
           </div>
         ))}
       </div>
-      <button
-        onClick={addMilestone}
-        style={{
-          fontFamily: "'Sen',sans-serif",
-          fontSize: 12,
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          padding: "10px 0",
-          marginTop: -38,
-          marginBottom: 46,
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: "#888",
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#722F37")}
-        onMouseLeave={e => (e.currentTarget.style.color = "#888")}
-      >
-        + Add Milestone
-      </button>
+      <div style={{ marginBottom: 46 }} />
 
       {/* Needs Input */}
       {activeDecisions.length > 0 && (
