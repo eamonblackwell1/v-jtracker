@@ -13,6 +13,7 @@ import defaultData from "@/lib/defaultData";
 
 export default function Dashboard({ initialData, dashboardId }) {
   const MASTER_PLAN_SEED_VERSION = "workbook-v2";
+  const DAY_PLAN_VERSION = "day-plan-v2";
   const [data, setData] = useState(initialData);
   const [tab, setTab] = useState("overview");
   const [saveStatus, setSaveStatus] = useState("idle");
@@ -39,6 +40,18 @@ export default function Dashboard({ initialData, dashboardId }) {
     setData(prev => {
       if (prev.planningFee !== 9200) return prev;
       return { ...prev, planningFee: 8600 };
+    });
+  }, []);
+
+  // One-time itinerary update to latest 4-day client structure.
+  useEffect(() => {
+    setData(prev => {
+      if (prev?.dayPlanVersion === DAY_PLAN_VERSION) return prev;
+      return {
+        ...prev,
+        days: defaultData.days,
+        dayPlanVersion: DAY_PLAN_VERSION,
+      };
     });
   }, []);
 

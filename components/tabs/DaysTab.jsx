@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SectionLabel, AccentLine, StatusDot } from "@/components/shared";
 import Editable from "@/components/Editable";
 
 export default function DaysTab({ data, u }) {
-  const [selectedDay, setSelectedDay] = useState("day3");
+  const [selectedDay, setSelectedDay] = useState(data.days[0]?.id || null);
   const day = data.days.find(d => d.id === selectedDay);
   const relatedItems = (data.checklist ?? [])
     .filter(item => item.weddingDay === selectedDay)
@@ -17,6 +17,35 @@ export default function DaysTab({ data, u }) {
   const addDecisionNeeded = () => u(d => { const dy = d.days.find(x => x.id === selectedDay); if (dy) dy.decisionsNeeded.push("New decision..."); });
   const removeDecisionNeeded = (i) => u(d => { const dy = d.days.find(x => x.id === selectedDay); if (dy) dy.decisionsNeeded.splice(i, 1); });
   const updateDecisionNeeded = (i, v) => u(d => { const dy = d.days.find(x => x.id === selectedDay); if (dy) dy.decisionsNeeded[i] = v; });
+  const addDay = () => u(d => {
+    const maxDayNum = d.days.reduce((m, item) => Math.max(m, item.dayNum || 0), 0);
+    const nextNum = maxDayNum + 1;
+    const newDay = {
+      id: `day${Date.now()}`,
+      dayNum: nextNum,
+      dateLabel: "TBD",
+      title: "New Day",
+      summary: "Add day summary...",
+      tasks: [],
+      decisionsNeeded: [],
+    };
+    d.days.push(newDay);
+    setSelectedDay(newDay.id);
+  });
+  const removeDay = () => u(d => {
+    if (d.days.length <= 1) return;
+    const idx = d.days.findIndex(x => x.id === selectedDay);
+    if (idx === -1) return;
+    d.days.splice(idx, 1);
+    const fallback = d.days[Math.max(0, idx - 1)]?.id || d.days[0]?.id || null;
+    setSelectedDay(fallback);
+  });
+
+  useEffect(() => {
+    if (!selectedDay && data.days[0]?.id) setSelectedDay(data.days[0].id);
+    const exists = data.days.some(d => d.id === selectedDay);
+    if (selectedDay && !exists) setSelectedDay(data.days[0]?.id || null);
+  }, [data.days, selectedDay]);
 
   return (
     <div>
@@ -43,6 +72,14 @@ export default function DaysTab({ data, u }) {
           );
         })}
       </div>
+      <div style={{ display: "flex", gap: 10, marginTop: -24, marginBottom: 28 }}>
+        <button onClick={addDay} style={{ fontFamily: "'Sen',sans-serif", fontSize: 11, letterSpacing: 1, color: "#888", background: "none", border: "1px solid rgba(0,0,0,0.12)", cursor: "pointer", padding: "8px 10px", textTransform: "uppercase" }}>
+          + Add Day
+        </button>
+        <button onClick={removeDay} disabled={data.days.length <= 1} style={{ fontFamily: "'Sen',sans-serif", fontSize: 11, letterSpacing: 1, color: data.days.length <= 1 ? "#bbb" : "#888", background: "none", border: "1px solid rgba(0,0,0,0.12)", cursor: data.days.length <= 1 ? "not-allowed" : "pointer", padding: "8px 10px", textTransform: "uppercase" }}>
+          Remove Day
+        </button>
+      </div>
 
       {day && (
         <div>
@@ -50,13 +87,13 @@ export default function DaysTab({ data, u }) {
           {day.dayNum === 3 ? (
             <div style={{ background: "#722F37", color: "#FAF8F5", padding: "24px 28px", marginBottom: 24 }}>
               <div style={{ fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: "rgba(250,248,245,0.6)", marginBottom: 6 }}>The Main Event</div>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300 }}>{day.title}</div>
-              <div style={{ fontSize: 13, color: "rgba(250,248,245,0.5)", marginTop: 4 }}>{day.dateLabel}</div>
+              <Editable value={day.title} onChange={v => updateDayField("title", v)} tag="div" style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, display: "block" }} />
+              <Editable value={day.dateLabel} onChange={v => updateDayField("dateLabel", v)} tag="div" style={{ fontSize: 13, color: "rgba(250,248,245,0.5)", marginTop: 4, display: "block" }} />
             </div>
           ) : (
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, marginBottom: 4 }}>{day.title}</div>
-              <div style={{ fontSize: 13, color: "#888" }}>{day.dateLabel}</div>
+              <Editable value={day.title} onChange={v => updateDayField("title", v)} tag="div" style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, marginBottom: 4, display: "block" }} />
+              <Editable value={day.dateLabel} onChange={v => updateDayField("dateLabel", v)} tag="div" style={{ fontSize: 13, color: "#888", display: "block" }} />
             </div>
           )}
 
