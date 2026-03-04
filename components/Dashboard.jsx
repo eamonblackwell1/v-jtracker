@@ -71,7 +71,7 @@ export default function Dashboard({ initialData, dashboardId }) {
 
         setData(prev => {
           if (prev?.seedVersion === MASTER_PLAN_SEED_VERSION) return prev;
-          const needsMilestones = !Array.isArray(prev?.milestones) || prev.milestones.length === 0;
+          const needsMilestones = !Array.isArray(prev?.milestones);
           const needsDays = !Array.isArray(prev?.days) || prev.days.length === 0;
           return {
             ...prev,

@@ -1,8 +1,10 @@
 "use client";
+import { useState } from "react";
 import { SectionLabel, AccentLine, PriorityBadge, StatusDot } from "@/components/shared";
 import Editable from "@/components/Editable";
 
 export default function OverviewTab({ data, setTab, u }) {
+  const [draggingMilestoneId, setDraggingMilestoneId] = useState(null);
   const activeDecisions = data.decisions.filter(d => d.status === "active");
   const updateMilestone = (id, field, value) => u(d => {
     const milestone = d.milestones.find(x => x.id === id);
@@ -24,6 +26,13 @@ export default function OverviewTab({ data, setTab, u }) {
     if (!milestone) return;
     milestone.status = milestone.status === "done" ? "upcoming" : "done";
   });
+  const reorderMilestones = (fromId, toId) => u(d => {
+    const fromIndex = d.milestones.findIndex(x => x.id === fromId);
+    const toIndex = d.milestones.findIndex(x => x.id === toId);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+    const [moved] = d.milestones.splice(fromIndex, 1);
+    d.milestones.splice(toIndex, 0, moved);
+  });
 
   return (
     <div>
@@ -32,7 +41,25 @@ export default function OverviewTab({ data, setTab, u }) {
       <AccentLine />
       <div style={{ display: "flex", gap: 0, marginBottom: 56, overflowX: "auto", paddingBottom: 8 }}>
         {data.milestones.map((m, i) => (
-          <div key={m.id} style={{ flex: "1 0 110px", textAlign: "center", position: "relative" }}>
+          <div
+            key={m.id}
+            draggable
+            onDragStart={() => setDraggingMilestoneId(m.id)}
+            onDragEnd={() => setDraggingMilestoneId(null)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (draggingMilestoneId && draggingMilestoneId !== m.id) reorderMilestones(draggingMilestoneId, m.id);
+              setDraggingMilestoneId(null);
+            }}
+            style={{
+              flex: "1 0 110px",
+              textAlign: "center",
+              position: "relative",
+              cursor: "grab",
+              opacity: draggingMilestoneId === m.id ? 0.6 : 1,
+            }}
+            title="Drag to reorder"
+          >
             <button
               onClick={() => toggleMilestoneDone(m.id)}
               title={m.status === "done" ? "Click to mark as not done" : "Click to mark as done"}
