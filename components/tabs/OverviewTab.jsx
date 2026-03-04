@@ -177,7 +177,7 @@ export default function OverviewTab({ data, setTab, u }) {
             <StatusDot />
             <div>
               <div style={{ fontSize: 14, lineHeight: 1.6 }}>{p.task}</div>
-              <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>{p.owner} · Started {p.started}</div>
+              <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>{p.owner}</div>
             </div>
           </div>
         ))}
