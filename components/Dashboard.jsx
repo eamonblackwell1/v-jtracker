@@ -186,10 +186,20 @@ export default function Dashboard({ initialData, dashboardId }) {
         <div style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#B8977E", marginBottom: 6 }}>
           {data.dashboardTitle || "Married in Japan"}
         </div>
-        <div style={{ fontSize: 13, color: "rgba(250,248,245,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
+        <div style={{ fontSize: 13, color: "rgba(250,248,245,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 12 }}>
           <span>Last updated: {data.couple.updated} · Juri & Eamon</span>
           <SaveIndicator status={saveStatus} />
         </div>
+        <a
+          href="https://cal.com/japanweddingexperiences/consultation"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#B8977E", textDecoration: "none", borderBottom: "1px solid rgba(184,151,126,0.35)", paddingBottom: 2, transition: "color 0.2s" }}
+          onMouseEnter={e => { e.currentTarget.style.color = "#FAF8F5"; }}
+          onMouseLeave={e => { e.currentTarget.style.color = "#B8977E"; }}
+        >
+          Book a Consultation
+        </a>
       </div>
     </div>
   );
